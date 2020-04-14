@@ -175,8 +175,11 @@ def queryOne():
 
         print("Printing the result:")
 
-        for row in records:
-            print(row)
+        if len(records) == 0:
+            print("There are no records matching your critria!")
+        else:
+            for row in records:
+                print(row)
         connection.commit()
 
         # return
@@ -190,7 +193,97 @@ def queryOne():
 
 
 def queryTwo():
-    print("from q2")
+    try:
+        connection = psycopg2.connect(user="postgres",
+                                      password="123456",
+                                      host="127.0.0.1",
+                                      database="cmpt354_jundic")
+
+        cursor = connection.cursor()
+
+        showTotalResearchers = '''
+                      select COUNT(*) from researcher;
+                      '''
+
+        cursor.execute(showTotalResearchers)
+
+        record = cursor.fetchone()
+
+        print("There are totally : " + str(record[0]) + " researchers")
+
+        isTrue = True
+        selectedPrincipleInvestigator = 0
+        while isTrue:
+            try:
+                selectedPrincipleInvestigator = int(input(
+                    "Please select the id number that is less or equal to " + str(record[0]) + ", Prompt ==> "))
+                if selectedPrincipleInvestigator > record[0]:
+                    print("The selected number is greater than " +
+                          str(record[0]) + " please select again!")
+                else:
+                    isTrue = False
+            except ValueError:
+                print("This is not a whole number.")
+
+        showAreas = '''
+                    select area from call;
+                    '''
+        cursor.execute(showAreas)
+
+        records = cursor.fetchall()
+
+        print("The current areas we have are: ")
+        for row in records:
+            print(row[0])
+
+        isTrue = True
+        selectedArea = ""
+        while isTrue:
+            selectedArea = input(
+                "Please enter the full name of the field that you would like to specify (case sensitive), Prompt ==> ")
+            for row in records:
+                if (selectedArea == row[0]):
+                    isTrue = False
+
+        print("One more data item to enter! ")
+        selectedMonth = input("Please enter a month in NUMERIC form (esp: 1, 2...): Prompt ==> ")
+        while (not (selectedMonth == '1' or selectedMonth == '2' or selectedMonth == '3' or selectedMonth == '4' or selectedMonth == '5' or selectedMonth == '6' or selectedMonth == '7' or selectedMonth == '8'or selectedMonth == '9' or selectedMonth == '10' or selectedMonth == '11' or selectedMonth == '12')):
+            selectedMonth = input(
+                "Invalid command! enter a month in NUMERIC form (esp: 1, 2...) Trying again: Prompt ==> ")
+
+        # now the variable is selectedArea / selectedPrincipleInvestigator / selectedMonth
+
+        selectAll = '''
+                    with month as (
+                    select * from (select id, extract(month from deadline) from call) as month where month.date_part >= %s)
+                    select DISTINCT call.id, call.title
+                    from call,month, proposal,collaborator
+                    where call.id = proposal.callid AND month.id = call.id
+                    AND call.area = %s AND proposal.pi = %s
+                    AND (proposal.requestamount > 20000.00 OR (select COUNT(collaborator.proposalid) from collaborator) >= 10)
+                    ;
+                    '''
+
+        cursor.execute(selectAll, (selectedMonth, selectedArea, selectedPrincipleInvestigator))
+        # cursor.execute(selectAll, (selectedMonth,))
+        records = cursor.fetchall()
+        print("Printing the result:")
+        if len(records) == 0:
+            print("There are no records matching your critria!")
+            print("Try choosing engineering as the area and id as 3 if you want the check again!")
+        else:
+            for row in records:
+                print(row)
+        connection.commit()
+        return
+
+    except (Exception, psycopg2.Error) as error:
+        print("Error while connecting to PostgreSQL", error)
+    finally:
+        # closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
 
 
 def queryThree():
