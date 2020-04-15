@@ -265,7 +265,6 @@ def queryTwo():
                     '''
 
         cursor.execute(selectAll, (selectedMonth, selectedArea, selectedPrincipleInvestigator))
-        # cursor.execute(selectAll, (selectedMonth,))
         records = cursor.fetchall()
         print("Printing the result:")
         if len(records) == 0:
@@ -287,7 +286,81 @@ def queryTwo():
 
 
 def queryThree():
-    print("from q3")
+    try:
+        connection = psycopg2.connect(user="postgres",
+                                      password="123456",
+                                      host="127.0.0.1",
+                                      database="cmpt354_jundic")
+
+        cursor = connection.cursor()
+
+        showAreas = '''
+                    select area from call;
+                    '''
+        cursor.execute(showAreas)
+
+        records = cursor.fetchall()
+
+        print("The current areas we have are: ")
+        for row in records:
+            print(row[0])
+
+        isTrue = True
+        selectedArea = ""
+        while isTrue:
+            selectedArea = input(
+                "Please enter the full name of the field that you would like to specify (case sensitive), Prompt ==> ")
+            for row in records:
+                if (selectedArea == row[0]):
+                    isTrue = False
+
+        # with newproposal as (select *
+        # from proposal,call where proposal.callid = call.id AND call.area = %s)
+        # select *
+        # from newproposal
+        # where newproposal.requestamount = (select MAX(requestamount) from newproposal);
+        selectAll = '''
+                    alter table proposal rename column id to proposalid ;
+                    alter table proposal rename column status to proposalstatus ;
+                    with newproposal as (select *
+                    from proposal,call where proposal.callid = call.id AND call.area = %s)
+                    select newproposal.proposalid, newproposal.callid, newproposal.pi, newproposal.proposalstatus, newproposal.amount, newproposal.requestamount
+                    from newproposal
+                    where newproposal.requestamount = (select MAX(requestamount) from newproposal);
+                    '''
+
+        # if i am not commiting i don't need to alter back
+        alterColumnBack = '''
+                        alter table proposal rename column proposalid to id ;
+                        alter table proposal rename column proposalstatus to status;
+                          '''
+        cursor.execute(selectAll, (selectedArea,))
+
+        records = cursor.fetchall()
+        if len(records) == 0:
+            print("There are no records matching your critria!")
+        else:
+            print("Printing the matching proposal info:")
+            # print("ID | callid | pi | status | amount | requestamount")
+            for row in records:
+                print("id: " + str(row[0]))
+                print("callid: " + str(row[1]))
+                print("pi: " + str(row[2]))
+                print("status: " + str(row[3]))
+                print("amount: " + str(row[4]))
+                print("requestamount: " + str(row[5]))
+
+        # cursor.execute(alterColumnBack)
+        # connection.commit()
+        return
+
+    except (Exception, psycopg2.Error) as error:
+        print("Error while connecting to PostgreSQL", error)
+    finally:
+        # closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
 
 
 def queryFour():
