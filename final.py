@@ -1,10 +1,3 @@
-
-# import subprocess
-#
-# subprocess.call("ssh -p24 jundic@csil-cpu1.csil.sfu.ca", shell = True)
-
-import sys
-import os
 import psycopg2
 
 
@@ -36,7 +29,8 @@ def createTableFunction():
             callid INT REFERENCES call(id) NOT NULL,
             pi INT REFERENCES researcher(id) NOT NULL,
             status appstatus DEFAULT 'submitted' NOT NULL,
-            amount NUMERIC(14,2)
+            amount NUMERIC(14,2),
+            requestamount NUMERIC(14,2)
             );
 
             CREATE TABLE collaborator(
@@ -65,6 +59,47 @@ def createTableFunction():
     return create_table_query
 
 
+def insertDataQuery():
+    insert_data_query = '''
+                        INSERT INTO researcher VALUES
+                        (1,'Name','Lastname1','email1@sfu.ca','SFU'),
+                        (2,'Name','Lastname2','email2@uvic.ca','UVIC'),
+                        (3,'Name','Lastname3','email3@sfu.ca','SFU'),
+                        (4,'Name','Lastname4','email4@uvic.ca','UVIC');
+                        (5,'Name','Lastname5','email5@uvic.ca','UVIC');
+
+                        INSERT INTO call VALUES
+                        (1,'Canadian Inovation','2018-07-16',NULL,'computer science',DEFAULT),
+                        (2,'Some Title','2018-03-03',NULL,'biology',DEFAULT),
+                        (3,'Reduce Carbon Footprint','2018-12-30',NULL,'engineering','closed');
+                        (4,'Environmental Issue','2018-02-03',NULL,'engineering',DEFAULT);
+
+                        INSERT INTO proposal VALUES
+                        (DEFAULT,2,1,'awarded',28000.00,25000),
+                        (DEFAULT,1,2,'denied',NULL,10000.00),
+                        (DEFAULT,3,3,'awarded',50000.00,30000.00);
+                        (DEFAULT,4,4,'awarded',40000.00,40000.00);
+
+                        INSERT INTO collaborator VALUES
+                        (1,10,5,'t'),
+                        (2,12,1,'f'),
+                        (3,12,4,'t'),
+                        (4,12,5,'t');
+
+                        INSERT INTO conflict VALUES
+                        (DEFAULT,1,2,'co-authered paper',now() + interval '2 year'),
+                        (DEFAULT,4,5,'related',NULL),
+                        (DEFAULT,3,7,'Same Department',NULL);
+
+                        INSERT INTO review VALUES
+                        (DEFAULT,6,3,now(),'t'),
+                        (DEFAULT,7,1,now() + interval '2 week','f'),
+                        (DEFAULT,6,1,now() + interval '2 week','t'),
+                        (DEFAULT,1,2,now(),'t');
+                        '''
+    return insert_data_query
+
+
 def createALLTables():
     # user = input("Please put in your user name\n")
     # password = input("Please put in your password\n")
@@ -84,7 +119,9 @@ def createALLTables():
 
         cursor = connection.cursor()
         create_table_query = createTableFunction()
+        insert_data_query = insertDataQuery()
         cursor.execute(create_table_query)
+        cursor.execute(insert_data_query)
         connection.commit()
         print("All the tables created successfully in PostgreSQL! ")
         print("You are successfully connected to cmpt354_jundic!\n")
@@ -471,6 +508,34 @@ def queryFive():
                 if (selectedArea == row[0]):
                     isTrue = False
 
+        selectAll = '''
+                    with sub as
+                    (select *
+                    from proposal join call on proposal.callid = call.id
+                    where call.area = %s and proposal.status = 'awarded'),
+                    subsub as
+                    (select ABS(amount - requestamount) AS discrepancy
+                    from sub),
+                    subsubsub as
+                    (select count(discrepancy) as totalpeople, sum(discrepancy) as totaldiscrepancy
+                    from subsub)
+                    select ROUND((totaldiscrepancy/totalpeople),2) AS averagediscrepancy
+                    from subsubsub
+                    ;
+                    '''
+
+        cursor.execute(selectAll, (selectedArea,))
+
+        record = cursor.fetchone()
+        record = record[0]
+
+        print("The average discrepancy amount for " + selectedArea + ":")
+
+        if record == None:
+            print("There are no records matching your criteria!")
+        else:
+            print(record)
+
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL", error)
     finally:
@@ -490,11 +555,12 @@ def querySeven():
 
 def main():
     # createALLTables();
-
+    # i might need to get user name and password and pass them as params in each query
+    # i can also prompt the TA to enter his/her database
     printMenu()
     while True:
         response = input("Main menu Prompt ==> ")
-        while (not (response == '0' or response == '1' or response == '2' or response == '3' or response == '4' or response == '5' or response == '6' or response == '7' or response == '8')):
+        while (not (response == '0' or response == '1' or response == '2' or response == '3' or response == '4' or response == '5' or response == '6' or response == '7' or response == '8' or response == '9')):
             response = input("Invalid command! Trying again: Main menu Prompt ==> ")
         if response == '0':
             printMenu()
@@ -515,6 +581,8 @@ def main():
         elif response == '8':
             print("I am going back to the lamp my master, rub the lamp to see me again next time!")
             return
+        elif response == '9':  # i need final fix on here and the menu
+            createALLTables()
 
 
 main()
