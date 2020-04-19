@@ -176,7 +176,7 @@ def queryOne():
         print("Printing the result:")
 
         if len(records) == 0:
-            print("There are no records matching your critria!")
+            print("There are no records matching your criteria!")
         else:
             for row in records:
                 print(row)
@@ -226,7 +226,7 @@ def queryTwo():
                 print("This is not a whole number.")
 
         showAreas = '''
-                    select area from call;
+                    select DISTINCT area from call;
                     '''
         cursor.execute(showAreas)
 
@@ -268,7 +268,7 @@ def queryTwo():
         records = cursor.fetchall()
         print("Printing the result:")
         if len(records) == 0:
-            print("There are no records matching your critria!")
+            print("There are no records matching your criteria!")
             print("Try choosing engineering as the area and id as 3 if you want the check again!")
         else:
             for row in records:
@@ -295,7 +295,7 @@ def queryThree():
         cursor = connection.cursor()
 
         showAreas = '''
-                    select area from call;
+                    select DISTINCT area from call;
                     '''
         cursor.execute(showAreas)
 
@@ -314,11 +314,6 @@ def queryThree():
                 if (selectedArea == row[0]):
                     isTrue = False
 
-        # with newproposal as (select *
-        # from proposal,call where proposal.callid = call.id AND call.area = %s)
-        # select *
-        # from newproposal
-        # where newproposal.requestamount = (select MAX(requestamount) from newproposal);
         selectAll = '''
                     alter table proposal rename column id to proposalid ;
                     alter table proposal rename column status to proposalstatus ;
@@ -338,7 +333,7 @@ def queryThree():
 
         records = cursor.fetchall()
         if len(records) == 0:
-            print("There are no records matching your critria!")
+            print("There are no records matching your criteria!")
         else:
             print("Printing the matching proposal info:")
             # print("ID | callid | pi | status | amount | requestamount")
@@ -427,7 +422,7 @@ def queryFour():
         print("Printing the result:")
 
         if len(records) == 0:
-            print("There are no records matching your critria!")
+            print("There are no records matching your criteria!")
         else:
             for row in records:
                 print("id: " + str(row[0]))
@@ -448,7 +443,41 @@ def queryFour():
 
 
 def queryFive():
-    print("from q5")
+    try:
+        connection = psycopg2.connect(user="postgres",
+                                      password="123456",
+                                      host="127.0.0.1",
+                                      database="cmpt354_jundic")
+
+        cursor = connection.cursor()
+
+        showAreas = '''
+                    select DISTINCT area from call;
+                    '''
+        cursor.execute(showAreas)
+
+        records = cursor.fetchall()
+
+        print("The current areas we have are: ")
+        for row in records:
+            print(row[0])
+
+        isTrue = True
+        selectedArea = ""
+        while isTrue:
+            selectedArea = input(
+                "Please enter the full name of the field that you would like to specify (case sensitive), Prompt ==> ")
+            for row in records:
+                if (selectedArea == row[0]):
+                    isTrue = False
+
+    except (Exception, psycopg2.Error) as error:
+        print("Error while connecting to PostgreSQL", error)
+    finally:
+        # closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
 
 
 def querySix():
