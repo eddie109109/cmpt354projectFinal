@@ -347,7 +347,7 @@ def queryThree():
                 print("callid: " + str(row[1]))
                 print("pi: " + str(row[2]))
                 print("status: " + str(row[3]))
-                print("amount: " + str(row[4]))
+                print("awarded amount: " + str(row[4]))
                 print("requestamount: " + str(row[5]))
 
         # cursor.execute(alterColumnBack)
@@ -364,7 +364,87 @@ def queryThree():
 
 
 def queryFour():
-    print("from q4")
+    isTrue = True
+    selectedYear = 0
+    while isTrue:
+        try:
+            selectedYear = int(input(
+                "Please enter a year in NUMERIC form (esp: 2019,2018...): Prompt ==> "))
+            if selectedYear > 2020 or selectedYear < 1:
+                print("The year you have entered does not exist!")
+            else:
+                isTrue = False
+        except ValueError:
+            print("This is not a whole number.")
+
+    selectedMonth = input("Please enter a month in NUMERIC form (esp: 1, 2...): Prompt ==> ")
+    while (not (selectedMonth == '1' or selectedMonth == '2' or selectedMonth == '3' or selectedMonth == '4' or selectedMonth == '5' or selectedMonth == '6' or selectedMonth == '7' or selectedMonth == '8'or selectedMonth == '9' or selectedMonth == '10' or selectedMonth == '11' or selectedMonth == '12')):
+        selectedMonth = input(
+            "Invalid command! enter a month in NUMERIC form (esp: 1, 2...) Trying again: Prompt ==> ")
+
+    selectedMonth = int(selectedMonth)
+
+    isTrue = True
+    selectedDay = 0
+    while isTrue:
+        try:
+            selectedDay = int(input(
+                "Please enter a date in NUMERIC form (esp: 31,30...): Prompt ==> "))
+            if selectedDay > 31 or selectedDay < 1:
+                print("The day you have entered does not exist!")
+            else:
+                isTrue = False
+        except ValueError:
+            print("This is not a whole number.")
+
+    try:
+        connection = psycopg2.connect(user="postgres",
+                                      password="123456",
+                                      host="127.0.0.1",
+                                      database="cmpt354_jundic")
+
+        cursor = connection.cursor()
+
+        selectAll = '''
+                    alter table proposal rename column id to proposalid ;
+                    alter table proposal rename column status to proposalstatus;
+                    with sub as
+                    (select * from
+                    call join proposal on proposal.callid = call.id),
+                    subsub as
+                    (select * from sub
+                    where sub.deadline < '%s-%s-%s')
+                    select subsub.proposalid, subsub.callid, subsub.pi, subsub.proposalstatus, subsub.amount, subsub.requestamount
+                    from subsub
+                    where subsub.amount = (select MAX(amount) from subsub)
+                    ;
+                    '''
+
+        cursor.execute(selectAll, (selectedYear, selectedMonth, selectedDay))
+
+        records = cursor.fetchall()
+
+        print("Printing the result:")
+
+        if len(records) == 0:
+            print("There are no records matching your critria!")
+        else:
+            for row in records:
+                print("id: " + str(row[0]))
+                print("callid: " + str(row[1]))
+                print("pi: " + str(row[2]))
+                print("status: " + str(row[3]))
+                print("awarded amount: " + str(row[4]))
+                print("requestamount: " + str(row[5]))
+        # connection.commit()
+
+    except (Exception, psycopg2.Error) as error:
+        print("Error while connecting to PostgreSQL", error)
+    finally:
+        # closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
 
 
 def queryFive():
