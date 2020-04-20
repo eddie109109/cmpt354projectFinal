@@ -1019,7 +1019,68 @@ def querySeven():
             connection.close()
 
 
+def testingCredentials(userInput, passwordInput, hostInput, databaseInput):
+    try:
+        connection = psycopg2.connect(user=userInput,
+                                      password=passwordInput,
+                                      host=hostInput,
+                                      database=databaseInput)
+
+        cursor = connection.cursor()
+        print("you have entered the right credentials! ")
+        print("You are successfully connected to " + databaseInput + "!")
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return True
+
+    except (Exception, psycopg2.Error) as error:
+        print("Error while connecting to PostgreSQL", error)
+        return False
+
+
 def main():
+
+    haveNoAccess = True
+    userInput = ''
+    passwordInput = ''
+    hostInput = ''
+    databaseInput = ''
+    while haveNoAccess:
+
+        # user = "postgres",
+        #   password = "123456",
+        #   host = "127.0.0.1",
+        #   database = "cmpt354_jundic")
+
+        userInput = input("Please enter your user name: Prompt==> ")
+        while userInput == '':
+            print("You forgot to put in user please try again !")
+            userInput = input("Please enter your user name: Prompt==> ")
+
+        passwordInput = input("Please enter your password: Prompt==> ")
+        while passwordInput == '':
+            print("You forgot to put in password please try again !")
+            passwordInput = input("Please enter your password: Prompt==> ")
+        hostInput = input(
+            "Please enter the host name (or press enter for default host:cs-db1.csil.sfu.ca): Prompt==> ")
+        databaseInput = input(
+            "Please enter your own database name(or press enter to go to my database assuming you have the access to it): Prompt==> ")
+
+        if hostInput == '':
+            # hostInput = 'cs-db1.csil.sfu.ca'
+            hostInput = '127.0.0.1'  # for testing
+
+        if databaseInput == '':
+            # databaseInput = 'cmpt354-jundic'
+            databaseInput = 'cmpt354_jundic'
+
+        if testingCredentials(userInput, passwordInput, hostInput, databaseInput):
+
+            haveNoAccess = False
+        else:
+            print("Wrong Credentials! ACCESS DENIED! Plase try again!")
+
     # createALLTables();
     # i might need to get user name and password and pass them as params in each query
     # i can also prompt the TA to enter his/her database
