@@ -867,7 +867,169 @@ def querySix():
 
 
 def querySeven():
-    print("from q7")
+    isTrue = True
+    selectedYear = 0
+    while isTrue:
+        try:
+            selectedYear = int(input(
+                "Please enter a year in NUMERIC form (esp: 2019,2018...): Prompt ==> "))
+            if selectedYear > 2020 or selectedYear < 1:
+                print("The year you have entered does not exist!")
+            else:
+                isTrue = False
+        except ValueError:
+            print("This is not a whole number.")
+
+    selectedMonth = input("Please enter a month in NUMERIC form (esp: 1, 2...): Prompt ==> ")
+    while (not (selectedMonth == '1' or selectedMonth == '2' or selectedMonth == '3' or selectedMonth == '4' or selectedMonth == '5' or selectedMonth == '6' or selectedMonth == '7' or selectedMonth == '8'or selectedMonth == '9' or selectedMonth == '10' or selectedMonth == '11' or selectedMonth == '12')):
+        selectedMonth = input(
+            "Invalid command! enter a month in NUMERIC form (esp: 1, 2...) Trying again: Prompt ==> ")
+
+    selectedMonth = int(selectedMonth)
+
+    isTrue = True
+    selectedDay = 0
+    while isTrue:
+        try:
+            selectedDay = int(input(
+                "Please enter a date in NUMERIC form (esp: 31,30...): Prompt ==> "))
+            if selectedDay > 31 or selectedDay < 1:
+                print("The day you have entered does not exist!")
+            else:
+                isTrue = False
+        except ValueError:
+            print("This is not a whole number.")
+
+    try:
+        connection = psycopg2.connect(user="postgres",
+                                      password="123456",
+                                      host="127.0.0.1",
+                                      database="cmpt354_jundic")
+
+        cursor = connection.cursor()
+
+        selectAll = '''
+                    select * from meeting
+                    where meeting.vacantdeadline > '%s-%s-%s'
+                    '''
+        cursor.execute(selectAll, (selectedYear, selectedMonth, selectedDay))
+        records = cursor.fetchall()
+
+        availabeRooms = []
+        if (len(records) == 0):
+            print("There are no records matching your criteria!")
+        else:
+            print("The matching rooms info: ")
+            print("id|userid|availabe deadline")
+            for row in records:
+                availabeRooms.append(row[0])  # now we have all the availabeRooms
+                print(row)
+            print()
+
+        isTrue = True
+        selectedRoomId = 0
+        while isTrue:
+            try:
+                selectedRoomId = int(input(
+                    "Please enter a room id from above info: Prompt ==> "))
+                if selectedRoomId not in availabeRooms:
+                    print("The room id you have picked does not exist!")
+                else:
+                    isTrue = False
+            except ValueError:
+                print("This is not a whole number.")
+
+        print("You have selected room #" + str(selectedRoomId))
+
+        getConflictUserId = '''
+                            select userid from meeting
+                            where id = %s
+                            '''
+
+        cursor.execute(getConflictUserId, (selectedRoomId,))
+
+        record = cursor.fetchone()
+
+        # get the conflict id of the researcher whos using this room
+        print("the conflict researcher id is: " + str(record[0]))
+
+        getOpenCalls = '''
+                        alter table proposal rename column id to proposalid ;
+                        alter table proposal rename column status to proposalstatus;
+                        with sub as
+                        (select * from
+                        call join proposal on proposal.callid = call.id)
+                        select proposalid, callid, title,area from sub
+                        where status = 'open'
+                       '''
+
+        alterColumnBack = '''
+                        alter table proposal rename column proposalid to id ;
+                        alter table proposal rename column proposalstatus to status;
+                          '''
+
+        cursor.execute(getOpenCalls)
+        records = cursor.fetchall()
+        list1 = []
+        if (len(records) == 0):
+            print("There are no records matching your criteria!")
+        else:
+            print("The matching calls info (calls are open for review): ")
+            print()
+            for row in records:
+                # add in the researcher id  so that later i can check if it is present in the chosen id
+                list1.append(row[1])
+                print("id: " + str(row[0]))
+                print("researcher id: " + str(row[1]))
+                print("title: " + str(row[2]))
+                print("area: " + str(row[3]))
+                print()
+
+        cursor.execute(alterColumnBack)
+
+        inputList = []
+        isTrue = True
+        selectedId = 0
+        while isTrue:
+            try:
+                selectedId = int(input(
+                    "Please enter an id that is listed above(3 in total): Prompt ==> "))
+                if selectedId not in list1:
+                    print("The id you have entered does not exist(or have been entered already)!")
+                else:
+                    inputList.append(selectedId)
+                    list1.remove(selectedId)
+                    if (len(inputList) >= 3):
+                        isTrue = False
+            except ValueError:
+                print("This is not a whole number.")
+
+        for i in range(len(inputList)):
+            print("you have picked " + str(inputList[i]))
+
+        getResearcherId = '''
+                          with sub as
+                          (select * from meeting
+                          where userid = %s OR userid = %s OR userid = %s)
+                          select * from sub
+                          where sub.vacantdeadline > '%s-%s-%s';
+                          '''
+
+        cursor.execute(getResearcherId, (inputList[0], inputList[1],
+                                         inputList[2], selectedYear, selectedMonth, selectedDay))
+
+        records = cursor.fetchall()
+        print("printing")
+        for row in records:
+            print(row)
+
+    except (Exception, psycopg2.Error) as error:
+        print("Error while connecting to PostgreSQL", error)
+    finally:
+        # closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
 
 
 def main():
