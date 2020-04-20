@@ -1021,7 +1021,7 @@ def querySeven():
 
 def testingCredentials(userInput, passwordInput, hostInput, databaseInput):
     try:
-        connection = psycopg2.connect(user=userInput,
+        connection = psycopg2.connect(username=userInput,
                                       password=passwordInput,
                                       host=hostInput,
                                       database=databaseInput)
