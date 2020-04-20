@@ -909,7 +909,7 @@ def querySeven():
         cursor = connection.cursor()
 
         selectAll = '''
-                    select * from meeting
+                    select id, vacantdeadline from meeting
                     where meeting.vacantdeadline > '%s-%s-%s'
                     '''
         cursor.execute(selectAll, (selectedYear, selectedMonth, selectedDay))
@@ -920,7 +920,7 @@ def querySeven():
             print("There are no records matching your criteria!")
         else:
             print("The matching rooms info: ")
-            print("id|userid|availabe deadline")
+            print("id| availabe deadline")
             for row in records:
                 availabeRooms.append(row[0])  # now we have all the availabeRooms
                 print(row)
@@ -949,6 +949,7 @@ def querySeven():
         cursor.execute(getConflictUserId, (selectedRoomId,))
 
         record = cursor.fetchone()
+        conflictingId = record[0]
 
         # get the conflict id of the researcher whos using this room
         print("the conflict researcher id is: " + str(record[0]))
@@ -1004,24 +1005,10 @@ def querySeven():
             except ValueError:
                 print("This is not a whole number.")
 
-        for i in range(len(inputList)):
-            print("you have picked " + str(inputList[i]))
-
-        getResearcherId = '''
-                          with sub as
-                          (select * from meeting
-                          where userid = %s OR userid = %s OR userid = %s)
-                          select * from sub
-                          where sub.vacantdeadline > '%s-%s-%s';
-                          '''
-
-        cursor.execute(getResearcherId, (inputList[0], inputList[1],
-                                         inputList[2], selectedYear, selectedMonth, selectedDay))
-
-        records = cursor.fetchall()
-        print("printing")
-        for row in records:
-            print(row)
+        if conflictingId in inputList:
+            print("Impossible! researcher " + str(conflictingId) + " is occupied on that day!")
+        else:
+            print("You have successfully scheduled these three calls on this day!")
 
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL", error)
