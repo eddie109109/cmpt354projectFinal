@@ -646,11 +646,6 @@ def querySix():
         cursor.execute(getResearcherId, (selectedProposalId,))
         researchers = cursor.fetchall()
 
-        print("All the researchers that contributed to this proposal: ")
-        for row in researchers:
-            print("researcher id: " + str(row[0]))
-            print()
-
         list2 = []
         for row in researchers:
             list2.append(row[0])
