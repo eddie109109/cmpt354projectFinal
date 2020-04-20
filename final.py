@@ -468,6 +468,7 @@ def queryFour():
                 print("status: " + str(row[3]))
                 print("awarded amount: " + str(row[4]))
                 print("requestamount: " + str(row[5]))
+                print()
         # connection.commit()
 
     except (Exception, psycopg2.Error) as error:
@@ -546,7 +547,328 @@ def queryFive():
 
 
 def querySix():
-    print("from q6")
+    try:
+        connection = psycopg2.connect(user="postgres",
+                                      password="123456",
+                                      host="127.0.0.1",
+                                      database="cmpt354_jundic")
+
+        cursor = connection.cursor()
+
+        showResearchers = '''
+                        select id, firstname, lastname from researcher;
+                        '''
+
+        showProposals = '''
+                        alter table proposal rename column id to proposalid ;
+                        alter table proposal rename column status to proposalstatus;
+                        with newproposal as
+                        (select * from
+                        call join proposal on proposal.callid = call.id)
+                        select newproposal.proposalid,newproposal.title,newproposal.proposalstatus, newproposal.amount, newproposal.requestamount
+                        from newproposal
+                        where newproposal.status = 'open'
+                        '''
+
+        alterColumnBack = '''
+                        alter table proposal rename column proposalid to id ;
+                        alter table proposal rename column proposalstatus to status;
+                          '''
+
+        showProposalid = '''
+                        alter table proposal rename column id to proposalid ;
+                        alter table proposal rename column status to proposalstatus;
+                        with newproposal as
+                        (select * from
+                        call join proposal on proposal.callid = call.id)
+                        select newproposal.proposalid
+                        from newproposal
+                        where newproposal.status = 'open'
+                        '''
+        cursor.execute(showResearchers)
+
+        records = cursor.fetchall()
+
+        print("All the researchers are: ")
+        print("ID|first name|last name")
+        for row in records:
+            print(row)
+
+        print()
+
+        cursor.execute(showProposals)
+        records = cursor.fetchall()
+        totalProposals = []
+        print("All the proposals that are still open for reviews: ")
+        for row in records:
+            totalProposals.append(row[0])  # store all the total proposals
+            print("proposal id: " + str(row[0]))
+            print("title: " + str(row[1]))
+            print("status: " + str(row[2]))
+            print("awarded amount: " + str(row[3]))
+            print("requestamount: " + str(row[4]))
+            print()
+
+        cursor.execute(alterColumnBack)
+        cursor.execute(showProposalid)
+        availabeProposalIds = cursor.fetchall()
+
+        list1 = []
+        for row in availabeProposalIds:
+            list1.append(row[0])
+
+        # for i in range(len(list1)):  for testing whats inside the list
+        #     print(list1[i])
+        isTrue = True
+        selectedProposalId = 0
+        while isTrue:
+            try:
+                selectedProposalId = int(input(
+                    "Please enter the proposal id that you want to pick from the availabe proposals above: Prompt ==> "))
+                if selectedProposalId not in list1:
+                    print("The proposal id you have entered does not exist!")
+                else:
+                    isTrue = False
+                    totalProposals.remove(selectedProposalId)
+            except ValueError:
+                print("This is not a whole number.")
+
+        print("The proposal id you have picked is: " + str(selectedProposalId))
+
+        cursor.execute(alterColumnBack)
+
+        getResearcherId = '''
+                         select proposal.pi
+                         from proposal
+                         where proposal.id = %s
+                         '''
+
+        cursor.execute(getResearcherId, (selectedProposalId,))
+        researchers = cursor.fetchall()
+
+        print("All the researchers that contributed to this proposal: ")
+        for row in researchers:
+            print("researcher id: " + str(row[0]))
+            print()
+
+        list2 = []
+        for row in researchers:
+            list2.append(row[0])
+
+        createTempTable = '''
+                          CREATE TABLE temp(
+                          id INT PRIMARY KEY,
+                          researcherid INT NOT NULL
+                          )
+                          '''
+        insertData = '''
+                    INSERT INTO temp VALUES (%s,%s)
+                     '''
+
+        droptable = '''
+                    DROP TABLE IF EXISTS temp
+                    '''
+
+        cursor.execute(createTempTable)
+        for i in range(len(list2)):
+            cursor.execute(insertData, (list2[i], list2[i]))
+
+        getConflict = '''
+                      select DISTINCT researcher2
+                      from temp join conflict on temp.researcherid = conflict.researcher1
+                      '''
+
+        cursor.execute(getConflict)
+        list3 = []
+        conflicts = cursor.fetchall()
+        for row in conflicts:
+            list3.append(row[0])
+
+        # cursor.execute(droptable)
+
+        createTempTable2 = '''
+                          CREATE TABLE temp2(
+                          id INT PRIMARY KEY
+                          )
+                          '''
+
+        insertData2 = '''
+                    INSERT INTO temp2 VALUES (%s)
+                     '''
+
+        droptable2 = '''
+                    DROP TABLE IF EXISTS temp2
+                    '''
+
+        cursor.execute(createTempTable2)
+        for i in range(len(list3)):
+            cursor.execute(insertData2, (list3[i],))
+
+        selectNoneConflictResearchers = '''
+                                        select * from researcher
+                                        where researcher.id NOT IN (select id from temp2);
+                                        '''
+
+        getMaxConflict = '''
+                        with sub as
+                        (select reviewerid, COUNT(reviewerid) as totalReview
+                        from review
+                        where reviewerid  IN (select researcherid from temp) GROUP BY reviewerid)
+                        select * from
+                        sub where totalReview >=3;
+                        '''
+
+        cursor.execute(getMaxConflict)
+        maxConflicts = cursor.fetchall()
+
+        createTempTable3 = '''
+                            CREATE TABLE temp3(
+                            id INT PRIMARY KEY
+                            );
+                           '''
+        insertData3 = '''
+                    INSERT INTO temp3 VALUES (%s)
+                     '''
+        droptable3 = '''
+                    DROP TABLE IF EXISTS temp3
+                    '''
+
+        if len(maxConflicts) == 0:
+            cursor.execute(selectNoneConflictResearchers)
+
+        else:
+            list4 = []
+            for row in maxConflicts:
+                list4.append(row[0])
+
+            cursor.execute(createTempTable3)
+            for i in range(len(list4)):
+                cursor.execute(insertData3, (list4[i],))
+
+            selectNoneConflictResearchers = '''
+                                            select * from researcher
+                                            where researcher.id NOT IN (select id from temp2) AND researcher.id NOT IN (select id from temp3);
+                                            '''
+            cursor.execute(selectNoneConflictResearchers)
+
+        records = cursor.fetchall()
+        print("All the researchers info that are not in conflict with the targeted proposals:")
+        noneConflictResearchers = []
+        for row in records:
+            noneConflictResearchers.append(row[0])
+            print(row)
+
+        # cursor.execute(droptable3)
+        # cursor.execute(droptable)
+        # cursor.execute(droptable2)
+
+        inputList = []
+        continueToAssign = True
+        while len(totalProposals) > 0 and continueToAssign:
+            isTrue = True
+            selectedResearcher = 0
+            while isTrue:
+                try:
+                    selectedResearcher = int(input(
+                        "Please enter the (researcher id) from the availabe researchers above: Prompt ==> "))
+                    if selectedResearcher not in noneConflictResearchers:
+                        print("The researcher id you have entered does not exist!")
+                    elif selectedResearcher in inputList:
+                        print("This researcher id has been entered, please enter a different one!")
+                    else:
+                        inputList.append(selectedResearcher)
+                        keepGoing = input(
+                            "continue assgining more researchers for the current proposal?(y/n)?: Prompt==> ").lower()
+                        if keepGoing == 'y':
+                            continue
+                        elif keepGoing == 'n':
+                            print(str(len(inputList)) + " researchers assigned for the current proposal!")
+                            inputList = []
+                            isTrue = False
+                        else:
+                            print("Wrong answer, please try again!")
+
+                except ValueError:
+                    print("This is not a whole number.")
+
+            print("The remaining (proposal id) are: ")
+            for i in range(len(totalProposals)):
+                print(totalProposals[i])
+                print()
+
+            nextAssignment = input(
+                "continue to assgin for the next proposal(y/n)?: Prompt==> ").lower()
+            if nextAssignment == 'y':
+                cursor.execute(selectNoneConflictResearchers)
+                records = cursor.fetchall()
+                noneConflictResearchers = []
+
+                print(
+                    "All the researchers info:")
+                for row in records:
+                    noneConflictResearchers.append(int(row[0]))
+                    print(row)
+
+                isSecondTrue = True
+                while isSecondTrue:
+                    try:
+                        selectedProposalId = int(input(
+                            "Please enter the remaining (proposal id): Prompt ==> "))
+                        if selectedProposalId not in totalProposals:
+                            print("The researcher id you have entered does not exist!")
+                        else:
+
+                            isContinue = True
+                            while isContinue:
+                                try:
+                                    selectedResearcher = int(input(
+                                        "Please enter the (researcher id) from above: Prompt ==> "))
+                                    if selectedResearcher not in noneConflictResearchers:
+                                        print("The researcher id you have entered does not exist!")
+                                    elif selectedResearcher in inputList:
+                                        print(
+                                            "This researcher id has been entered, please enter a different one!")
+                                    else:
+                                        inputList.append(selectedResearcher)
+                                        keepGoing = input(
+                                            "continue assgining more researchers for the current proposal?(y/n)?: Prompt==> ").lower()
+                                        if keepGoing == 'y':
+                                            continue
+                                        elif keepGoing == 'n':
+                                            print(str(len(inputList)) +
+                                                  " researchers assigned for the current proposal!")
+                                            inputList = []
+                                            isContinue = False
+                                            isSecondTrue = False
+                                            # continueToAssign = False
+                                            totalProposals.remove(selectedProposalId)
+                                            if (len(totalProposals) == 0):
+                                                print("All the proposals have been assgined to review!")
+                                        else:
+                                            print("Wrong answer, please try again!")
+
+                                except ValueError:
+                                    print("This is not a whole number.")
+
+                    except ValueError:
+                        print("This is not a whole number.")
+                continue
+            elif nextAssignment == 'n':
+                continueToAssign = False
+            else:
+                print("Wrong answer, please try again!")
+
+        cursor.execute(droptable3)
+        cursor.execute(droptable)
+        cursor.execute(droptable2)
+
+    except (Exception, psycopg2.Error) as error:
+        print("Error while connecting to PostgreSQL", error)
+    finally:
+        # closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
 
 
 def querySeven():
