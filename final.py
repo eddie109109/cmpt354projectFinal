@@ -100,7 +100,7 @@ def insertDataQuery():
     return insert_data_query
 
 
-def createALLTables():
+def createALLTables(userInput, passwordInput, hostInput, databaseInput):
     # user = input("Please put in your user name\n")
     # password = input("Please put in your password\n")
     # host = "localhost"
@@ -112,10 +112,10 @@ def createALLTables():
         #                               host = "cs-db1.csil.sfu.ca",
         #                               database = "cmpt354-jundic")
 
-        connection = psycopg2.connect(user="postgres",
-                                      password="123456",
-                                      host="127.0.0.1",
-                                      database="cmpt354_jundic")
+        connection = psycopg2.connect(user=userInput,
+                                      password=passwordInput,
+                                      host=hostInput,
+                                      database=databaseInput)
 
         cursor = connection.cursor()
         create_table_query = createTableFunction()
@@ -138,30 +138,30 @@ def createALLTables():
 
 def printMenu():
     print("Thanks for rubbing the lamp! What would you like to do my dear master?\n")
-    print("Press 1 to find all the competitions(calls) by a specific month --->(ID, titile) will be returned")
+    print("Press (1) to find all the competitions(calls) by a specific month and requested more than $20000 or have 10 people in")
     # Q1 (20 points) Find all competitions (calls for grant proposals) open at a user-specified month, which
     # already have at least one submitted large proposal. For a proposal to be large, it has to request more
     # than $20,000 or to have more than 10 participants, including the principle investigator. Return both
     # IDs and the titles.
 
-    print("Press 2 to find all the competitions by specific areas")
+    print("Press (2) to find all the competitions by specific areas")
     # Q2 (10 points) Next, modify your program for Q1 by allowing the user to specify the areas (e.g., biology
     # and chemistry) (s)he is interested in, and only displaying the competitions where the submitted large
     # proposals have principle investigators specified by the user.
 
-    print("Press 3 to find the proposal(s) that request the largest amount of money by a specific area")
+    print("Press (3) to find the proposal(s) that request the largest amount of money by a specific area")
     # Q3 (10 points) For a user-specified area, find the proposal(s) that request(s) the largest amount of
     # money.
 
-    print("Press 4 to find the proposal(s) that are awarded the largest amount before a specific date")
+    print("Press (4) to find the proposal(s) that are awarded the largest amount before a specific date")
     # Q4 (10 points) For a user-specified date, find the proposals submitted before that date that are awarded
     # the largest amount of money.
 
-    print("Press 5 to find the average requested/awarded discrepancy by a specific area")
+    print("Press (5) to find the average requested/awarded discrepancy by a specific area")
     # Q5 (10 points) For an area specified by the user, output its average requested/awarded discrepancy,
     # that is, the absolute value of the difference between the amounts.
 
-    print('''Press 6 to assign a set of reviewers to review a specific grant application by a specific ID.
+    print('''Press (6) to assign a set of reviewers to review a specific grant application by a specific ID.
                  A list of reviewers who are not in conflict with the proposal being reviewed
                  and have not reached the max of 3 proposals will be returned.''')
     # Q6 (30 points) Reviewer assignment: Provide the user with the option of assigning a set of reviewers to
@@ -170,7 +170,7 @@ def printMenu():
     # request and receive a list of reviewers who are not in conflict with the proposal being reviewed,
     # and who still have not reached the maximum of three proposals to review.
 
-    print('''Press 7 to check a specific room is availabe at a specific date.
+    print('''Press (7) to check a specific room is availabe at a specific date.
                  If yes, enter 3 competitions(calls) IDs to be discussed on that day
                  Otherwise, 'Impossible' will be returned''')
     # Q7 (30 points) Meeting scheduling: Your application should check if the user-entered room is available
@@ -180,26 +180,26 @@ def printMenu():
     # that scheduling a discussion on that particular competition is impossible on that day (a simplified
     # version just returns “Impossible”). Here, for a reviewer “not to be available” means that he or she
     # is scheduled to be in another room on the same day
-    print("Press 8 to EXIT the program ...")
-    print("Press 0 to see the menu again")
+    print("Press (8) to EXIT the program ...")
+    print("Press (0) to see the menu again")
 
 
-def queryOne():
+def queryOne(userInput, passwordInput, hostInput, databaseInput):
     selectedMonth = input("Please enter a month in NUMERIC form (esp: 1, 2...): Prompt ==> ")
     while (not (selectedMonth == '1' or selectedMonth == '2' or selectedMonth == '3' or selectedMonth == '4' or selectedMonth == '5' or selectedMonth == '6' or selectedMonth == '7' or selectedMonth == '8'or selectedMonth == '9' or selectedMonth == '10' or selectedMonth == '11' or selectedMonth == '12')):
         selectedMonth = input(
             "Invalid command! enter a month in NUMERIC form (esp: 1, 2...) Trying again: Prompt ==> ")
     try:
-        connection = psycopg2.connect(user="postgres",
-                                      password="123456",
-                                      host="127.0.0.1",
-                                      database="cmpt354_jundic")
+        connection = psycopg2.connect(user=userInput,
+                                      password=passwordInput,
+                                      host=hostInput,
+                                      database=databaseInput)
 
         cursor = connection.cursor()
 
         selectAll = '''
                     with month as (
-                    select * from (select id, extract(month from deadline) from call) as month where month.date_part >= %s)
+                    select * from (select id, extract(month from deadline) from call) as month where month.date_part = %s)
                     select DISTINCT call.id, call.title
                     from call, proposal, month, collaborator
                     where call.id = proposal.callid AND month.id = call.id AND
@@ -229,12 +229,12 @@ def queryOne():
             connection.close()
 
 
-def queryTwo():
+def queryTwo(userInput, passwordInput, hostInput, databaseInput):
     try:
-        connection = psycopg2.connect(user="postgres",
-                                      password="123456",
-                                      host="127.0.0.1",
-                                      database="cmpt354_jundic")
+        connection = psycopg2.connect(user=userInput,
+                                      password=passwordInput,
+                                      host=hostInput,
+                                      database=databaseInput)
 
         cursor = connection.cursor()
 
@@ -257,6 +257,8 @@ def queryTwo():
                 if selectedPrincipleInvestigator > record[0]:
                     print("The selected number is greater than " +
                           str(record[0]) + " please select again!")
+                elif selectedPrincipleInvestigator < 1:
+                    print("The selected number have to be greater than 0, please try again!")
                 else:
                     isTrue = False
             except ValueError:
@@ -322,12 +324,12 @@ def queryTwo():
             connection.close()
 
 
-def queryThree():
+def queryThree(userInput, passwordInput, hostInput, databaseInput):
     try:
-        connection = psycopg2.connect(user="postgres",
-                                      password="123456",
-                                      host="127.0.0.1",
-                                      database="cmpt354_jundic")
+        connection = psycopg2.connect(user=userInput,
+                                      password=passwordInput,
+                                      host=hostInput,
+                                      database=databaseInput)
 
         cursor = connection.cursor()
 
@@ -395,7 +397,7 @@ def queryThree():
             connection.close()
 
 
-def queryFour():
+def queryFour(userInput, passwordInput, hostInput, databaseInput):
     isTrue = True
     selectedYear = 0
     while isTrue:
@@ -430,10 +432,10 @@ def queryFour():
             print("This is not a whole number.")
 
     try:
-        connection = psycopg2.connect(user="postgres",
-                                      password="123456",
-                                      host="127.0.0.1",
-                                      database="cmpt354_jundic")
+        connection = psycopg2.connect(user=userInput,
+                                      password=passwordInput,
+                                      host=hostInput,
+                                      database=databaseInput)
 
         cursor = connection.cursor()
 
@@ -480,12 +482,12 @@ def queryFour():
             connection.close()
 
 
-def queryFive():
+def queryFive(userInput, passwordInput, hostInput, databaseInput):
     try:
-        connection = psycopg2.connect(user="postgres",
-                                      password="123456",
-                                      host="127.0.0.1",
-                                      database="cmpt354_jundic")
+        connection = psycopg2.connect(user=userInput,
+                                      password=passwordInput,
+                                      host=hostInput,
+                                      database=databaseInput)
 
         cursor = connection.cursor()
 
@@ -533,7 +535,7 @@ def queryFive():
         print("The average discrepancy amount for " + selectedArea + ":")
 
         if record == None:
-            print("There are no records matching your criteria!")
+            print("This department's proposals never got awarded!")
         else:
             print(record)
 
@@ -546,12 +548,12 @@ def queryFive():
             connection.close()
 
 
-def querySix():
+def querySix(userInput, passwordInput, hostInput, databaseInput):
     try:
-        connection = psycopg2.connect(user="postgres",
-                                      password="123456",
-                                      host="127.0.0.1",
-                                      database="cmpt354_jundic")
+        connection = psycopg2.connect(user=userInput,
+                                      password=passwordInput,
+                                      host=hostInput,
+                                      database=databaseInput)
 
         cursor = connection.cursor()
 
@@ -617,8 +619,6 @@ def querySix():
         for row in availabeProposalIds:
             list1.append(row[0])
 
-        # for i in range(len(list1)):  for testing whats inside the list
-        #     print(list1[i])
         isTrue = True
         selectedProposalId = 0
         while isTrue:
@@ -753,15 +753,11 @@ def querySix():
             noneConflictResearchers.append(row[0])
             print(row)
 
-        # cursor.execute(droptable3)
-        # cursor.execute(droptable)
-        # cursor.execute(droptable2)
-
         inputList = []
         continueToAssign = True
+        isTrue = True
         while len(totalProposals) > 0 and continueToAssign:
-            isTrue = True
-            selectedResearcher = 0
+
             while isTrue:
                 try:
                     selectedResearcher = int(input(
@@ -809,46 +805,52 @@ def querySix():
                     try:
                         selectedProposalId = int(input(
                             "Please enter the remaining (proposal id): Prompt ==> "))
-                        if selectedProposalId not in totalProposals:
-                            print("The researcher id you have entered does not exist!")
-                        else:
-
-                            isContinue = True
-                            while isContinue:
-                                try:
-                                    selectedResearcher = int(input(
-                                        "Please enter the (researcher id) from above: Prompt ==> "))
-                                    if selectedResearcher not in noneConflictResearchers:
-                                        print("The researcher id you have entered does not exist!")
-                                    elif selectedResearcher in inputList:
-                                        print(
-                                            "This researcher id has been entered, please enter a different one!")
-                                    else:
-                                        inputList.append(selectedResearcher)
-                                        keepGoing = input(
-                                            "continue assgining more researchers for the current proposal?(y/n)?: Prompt==> ").lower()
-                                        if keepGoing == 'y':
-                                            continue
-                                        elif keepGoing == 'n':
-                                            print(str(len(inputList)) +
-                                                  " researchers assigned for the current proposal!")
-                                            inputList = []
-                                            isContinue = False
-                                            isSecondTrue = False
-                                            # continueToAssign = False
-                                            totalProposals.remove(selectedProposalId)
-                                            if (len(totalProposals) == 0):
-                                                print("All the proposals have been assgined to review!")
-                                        else:
-                                            print("Wrong answer, please try again!")
-
-                                except ValueError:
-                                    print("This is not a whole number.")
-
                     except ValueError:
                         print("This is not a whole number.")
-                continue
+                    if selectedProposalId not in totalProposals:
+                        print("The proposal id you have entered does not exist!")
+                    else:
+                        totalProposals.remove(selectedProposalId)
+                        isContinue = True
+                        while isContinue:
+                            try:
+                                selected = int(input(
+                                    "Please enter the (researcher id) from above: Prompt ==> "))
+                            except ValueError:
+                                print("damn")
+                                print("This is not a whole number.")
+
+                            if selected not in noneConflictResearchers:
+                                print("The researcher id you have entered does not exist!")
+                                continue
+                            elif selected in inputList:
+                                print(
+                                    "This researcher id has been entered, please enter a different one!")
+                                continue
+                            else:
+                                keepGoing = input(
+                                    "continue assgining more researchers for the current proposal?(y/n)?: Prompt==> ").lower()
+                                if keepGoing == 'y':
+                                    continue
+                                elif keepGoing == 'n':
+                                    print(str(len(inputList)) +
+                                          " researchers assigned for the current proposal!")
+                                    inputList = []
+                                    isContinue = False
+                                    isTrue = False
+                                    isSecondTrue = False
+                                    if (len(totalProposals) == 0):
+                                        print("All the proposals have been assgined to review!")
+                                        isSecondTrue = False
+                                        continueToAssign = False
+                                        break
+                                else:
+                                    print("Wrong answer, please try again!")
+
             elif nextAssignment == 'n':
+                isTrue = False
+                isContinue = False
+                isSecondTrue = False
                 continueToAssign = False
             else:
                 print("Wrong answer, please try again!")
@@ -866,7 +868,7 @@ def querySix():
             connection.close()
 
 
-def querySeven():
+def querySeven(userInput, passwordInput, hostInput, databaseInput):
     isTrue = True
     selectedYear = 0
     while isTrue:
@@ -901,10 +903,10 @@ def querySeven():
             print("This is not a whole number.")
 
     try:
-        connection = psycopg2.connect(user="postgres",
-                                      password="123456",
-                                      host="127.0.0.1",
-                                      database="cmpt354_jundic")
+        connection = psycopg2.connect(user=userInput,
+                                      password=passwordInput,
+                                      host=hostInput,
+                                      database=databaseInput)
 
         cursor = connection.cursor()
 
@@ -918,6 +920,7 @@ def querySeven():
         availabeRooms = []
         if (len(records) == 0):
             print("There are no records matching your criteria!")
+            return
         else:
             print("The matching rooms info: ")
             print("id| availabe deadline")
@@ -1029,9 +1032,9 @@ def testingCredentials(userInput, passwordInput, hostInput, databaseInput):
         cursor = connection.cursor()
         print("you have entered the right credentials! ")
         print("You are successfully connected to " + databaseInput + "!")
-        connection.commit()
-        cursor.close()
-        connection.close()
+        # connection.commit()
+        # cursor.close()
+        # connection.close()
         return True
 
     except (Exception, psycopg2.Error) as error:
@@ -1040,48 +1043,47 @@ def testingCredentials(userInput, passwordInput, hostInput, databaseInput):
 
 
 def main():
+    userInput = 'postgres'
+    passwordInput = '123456'
+    hostInput = '127.0.0.1'
+    databaseInput = 'cmpt354_jundic'
 
-    haveNoAccess = True
-    userInput = ''
-    passwordInput = ''
-    hostInput = ''
-    databaseInput = ''
-    while haveNoAccess:
+    # haveNoAccess = True
+    # userInput = ''
+    # passwordInput = ''
+    # hostInput = ''
+    # databaseInput = ''
+    # while haveNoAccess:
+    #
+    #     userInput = input("Please enter your user name: Prompt==> ")
+    #     while userInput == '':
+    #         print("You forgot to put in user please try again !")
+    #         userInput = input("Please enter your user name: Prompt==> ")
+    #
+    #     passwordInput = input("Please enter your password: Prompt==> ")
+    #     while passwordInput == '':
+    #         print("You forgot to put in password please try again !")
+    #         passwordInput = input("Please enter your password: Prompt==> ")
+    #     hostInput = input(
+    #         "Please enter the host name (or press enter for default host:cs-db1.csil.sfu.ca): Prompt==> ")
+    #     databaseInput = input(
+    #         "Please enter your own database name(or press enter to go to my database assuming you have the access to it): Prompt==> ")
+    #
+    #     if hostInput == '':
+    #         # hostInput = 'cs-db1.csil.sfu.ca'
+    #         hostInput = '127.0.0.1'  # for testing
+    #
+    #     if databaseInput == '':
+    #         # databaseInput = 'cmpt354-jundic'
+    #         databaseInput = 'cmpt354_jundic'
+    #
+    #     if testingCredentials(userInput, passwordInput, hostInput, databaseInput):
+    #
+    #         haveNoAccess = False
+    #     else:
+    #         print("Wrong Credentials! ACCESS DENIED! Plase try again!")
 
-        # user = "postgres",
-        #   password = "123456",
-        #   host = "127.0.0.1",
-        #   database = "cmpt354_jundic")
-
-        userInput = input("Please enter your user name: Prompt==> ")
-        while userInput == '':
-            print("You forgot to put in user please try again !")
-            userInput = input("Please enter your user name: Prompt==> ")
-
-        passwordInput = input("Please enter your password: Prompt==> ")
-        while passwordInput == '':
-            print("You forgot to put in password please try again !")
-            passwordInput = input("Please enter your password: Prompt==> ")
-        hostInput = input(
-            "Please enter the host name (or press enter for default host:cs-db1.csil.sfu.ca): Prompt==> ")
-        databaseInput = input(
-            "Please enter your own database name(or press enter to go to my database assuming you have the access to it): Prompt==> ")
-
-        if hostInput == '':
-            # hostInput = 'cs-db1.csil.sfu.ca'
-            hostInput = '127.0.0.1'  # for testing
-
-        if databaseInput == '':
-            # databaseInput = 'cmpt354-jundic'
-            databaseInput = 'cmpt354_jundic'
-
-        if testingCredentials(userInput, passwordInput, hostInput, databaseInput):
-
-            haveNoAccess = False
-        else:
-            print("Wrong Credentials! ACCESS DENIED! Plase try again!")
-
-    # createALLTables();
+    # createALLTables(userInput, passwordInput, hostInput, databaseInput);
     # i might need to get user name and password and pass them as params in each query
     # i can also prompt the TA to enter his/her database
     printMenu()
@@ -1092,24 +1094,24 @@ def main():
         if response == '0':
             printMenu()
         elif response == '1':
-            queryOne()
+            queryOne(userInput, passwordInput, hostInput, databaseInput)
         elif response == '2':
-            queryTwo()
+            queryTwo(userInput, passwordInput, hostInput, databaseInput)
         elif response == '3':
-            queryThree()
+            queryThree(userInput, passwordInput, hostInput, databaseInput)
         elif response == '4':
-            queryFour()
+            queryFour(userInput, passwordInput, hostInput, databaseInput)
         elif response == '5':
-            queryFive()
+            queryFive(userInput, passwordInput, hostInput, databaseInput)
         elif response == '6':
-            querySix()
+            querySix(userInput, passwordInput, hostInput, databaseInput)
         elif response == '7':
-            querySeven()
+            querySeven(userInput, passwordInput, hostInput, databaseInput)
         elif response == '8':
             print("I am going back to the lamp my master, rub the lamp to see me again next time!")
             return
         elif response == '9':  # i need final fix on here and the menu
-            createALLTables()
+            createALLTables(userInput, passwordInput, hostInput, databaseInput)
 
 
 main()
