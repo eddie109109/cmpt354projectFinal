@@ -1,0 +1,2 @@
+DROP TABLE researcher,call,collaborator,conflict,meeting,proposal,review;
+DROP TYPE callstatus,appstatus;

@@ -1,0 +1,35 @@
+Student name: Jundi Chen (no team)
+Student number: 301387982
+
+Project description and instructions:
+My final project SQL embedded program is designed by using psycopg2 module from python3 combined with PostgreSQL database.
+Since this is a python file, you don't need a makefile to execute it.
+
+Warning:
+My python file will not run locally on your machine since psycopg2 does not allow me to ssh to sfu server.
+
+
+How to run my file:
+Once you have logged in to CSIL by ssh and transfer my file there,
+run my final.py file by entering command: python3 final.py
+
+
+How to navigate inside my database:
+When you have successfully run my file, you will be prompted to enter your own user name and password to csil-cpu1.csil.sfu.ca server.
+For the host name, you can either enter your own host name, or press enter to choose the default: cs-db1.csil.sfu.ca
+For the database name, you can either enter your own database name, or press enter to choose mine: cmpt354-jundic  (assuming you have the access to it)
+Once you have entered all the credentials and if they are all correct, you will be able to navigate through my database.
+
+Initially, I don't have any tables created on csil-cpu1.csil.sfu.ca sever under: cmpt354-jundic
+You need to enter "0" to create all the tables and insert all the data first in order to choose other options to query from the database.
+You can also enter "11" to see all the existing tables or "10" to drop all the existing tables and types.
+If you enter other query options without creating the tables first, you will not query anything.
+Finally if you are bored with my database, you can enter "8" to exit the program
+
+
+Adjustments on the existing schema and reasons:
+There are two adjustments that I had to make to the provided schema. The first one is, I added a 'request amount' column for the call table
+since the provided table only has 'amount' that is intended for the awarded amount. However, in some query, such as query 5, we are asked to compare the
+requested amount and the awarded amount. Adding this extra column will make this query possible.
+The second one is that I had to add a table called "meeting" to accommodate the need for query 7 since it requires a room number which
+I will have this piece of info in "meeting" table for further querying to accomplish this task.
