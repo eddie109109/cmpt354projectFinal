@@ -396,7 +396,6 @@ def queryTwo(userInput, passwordInput, hostInput, databaseInput):
         print("Printing the result:")
         if len(records) == 0:
             print("There are no records matching your criteria!")
-            print("Try choosing engineering as the area and id as 3 if you want the check again!")
         else:
             for row in records:
                 print(row)
@@ -463,7 +462,6 @@ def queryThree(userInput, passwordInput, hostInput, databaseInput):
             print("There are no records matching your criteria!")
         else:
             print("Printing the matching proposal info:")
-            # print("ID | callid | pi | status | amount | requestamount")
             for row in records:
                 print("id: " + str(row[0]))
                 print("callid: " + str(row[1]))
