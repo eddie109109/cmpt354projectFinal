@@ -223,52 +223,6 @@ def showAllTables(userInput, passwordInput, hostInput, databaseInput):
             cursor.close()
             connection.close()
 
-# def createForFun(userInput, passwordInput, hostInput, databaseInput):
-#     try:
-#         connection = psycopg2.connect(user=userInput,
-#                                       password=passwordInput,
-#                                       host=hostInput,
-#                                       database=databaseInput)
-#
-#         cursor = connection.cursor()
-#
-#         create_table_query = '''
-#                 CREATE TABLE good(
-#                 id SERIAL PRIMARY KEY,
-#                 callid INT
-#                 );
-#
-#
-#                 CREATE TABLE bad(
-#                 id SERIAL PRIMARY KEY,
-#                 callid INT
-#                 );
-#                 '''
-#         insert_data_query = '''
-#                             INSERT INTO good VALUES
-#                             (1,2),
-#                             (2,3);
-#
-#                             INSERT INTO bad VALUES
-#                             (1,2),
-#                             (2,3);
-#                             '''
-#
-#         cursor.execute(create_table_query)
-#         cursor.execute(insert_data_query)
-#         connection.commit()
-#         print("All the tables created successfully in PostgreSQL! ")
-#         print("You are successfully connected to cmpt354_jundic!\n")
-#
-#     except (Exception, psycopg2.Error) as error:
-#         print("Error while connecting to PostgreSQL", error)
-#     finally:
-#         # closing database connection.
-#         if(connection):
-#             cursor.close()
-#             connection.close()
-#             print("PostgreSQL connection is closed")
-
 
 def printMenu():
 
