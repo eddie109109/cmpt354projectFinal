@@ -23,8 +23,8 @@ Once you have entered all the credentials and if they are all correct, you will 
 Initially, I don't have any tables created on csil-cpu1.csil.sfu.ca sever under: cmpt354-jundic
 You need to enter "0" to create all the tables and insert all the data first in order to choose other options to query from the database.
 You can also enter "11" to see all the existing tables or "10" to drop all the existing tables and types.
-If you enter other query options without creating the tables first, you will not query anything.
-Finally if you are bored with my database, you can enter "8" to exit the program
+If you enter other query options without creating the tables first, you will not be able to query anything.
+Finally, if you are bored with my database, you can enter "8" to exit the program. If you are not bored, perhaps give me a good grade? LOL
 
 
 Adjustments on the existing schema and reasons:
