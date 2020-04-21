@@ -1,0 +1,28 @@
+CREATE ASSERTION conflict_reviewer_assignment
+CHECK ( (SELECT id FROM researcher) <>
+(SELECT id FROM meeting WHERE meeting.userid = researcher.id)
+);
+
+CREATE ASSERTION conflict_reviewers
+CHECK ( (SELECT id FROM call, proposal where proposal.callid = call.id ) <>
+(SELECT researcherid FROM collaborator) AND
+(SELECT id FROM call, proposal where proposal.callid = call.id ) <>
+(SELECT pi FROM proposal)
+);
+
+Assuming I store user picked date as the 'current_date'
+CREATE ASSERTION no_more_two_days
+CHECK ((SELECT userid FROM meeting where meeting.vacantdeadline = current_date)
+<> (SELECT userid FROM meeting where meeting.vacantdeadline <> current_date - INTERVAL '1 day')
+);
+
+Assuming I store all user picked proposal id in another table called 'picked_proposal'
+and id REFERENCES id from the proposal table
+Assuming I store all user picked attendee id in another table called 'picked_attendee'
+and id REFERENCES id from the researcher table, also create another column named 'reviewproposalid'
+After assigning all the picked_proposals to the picked_attendees, I will UPDATE the
+picked_attendee table so that each row might have a picked_proposal Otherwise null
+finally I can write the following ASSERTION:
+CREATE ASSERTION must_review_one
+CHECK ((SELECT * FROM picked_attendee WHERE picked_attendee.reviewproposalid <> NULL)
+);

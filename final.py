@@ -226,7 +226,7 @@ def showAllTables(userInput, passwordInput, hostInput, databaseInput):
 
 def printMenu():
 
-    print("Press (0) to create all the tables!")
+    print("Press (0) to create all the tables again!(if you have dropped all of them)")
     print("Press (1) to find all the competitions(calls) by a specific month and requested more than $20000 or have 10 people in")
     # Q1 (20 points) Find all competitions (calls for grant proposals) open at a user-specified month, which
     # already have at least one submitted large proposal. For a proposal to be large, it has to request more
@@ -1160,8 +1160,6 @@ def main():
             print("Wrong Credentials! ACCESS DENIED! Plase try again!")
 
     # createALLTables(userInput, passwordInput, hostInput, databaseInput)
-    print("!!Please press (0) to create all the tables first/ or (11) to check for existing tables!!")
-    print("!!You will be querying empty tables if you don't press (0) first!!\n")
     printMenu()
     while True:
         response = input("Main menu Prompt(9 to see menu again)==> ")

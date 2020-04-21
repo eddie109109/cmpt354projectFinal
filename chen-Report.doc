@@ -1,5 +1,7 @@
-Student name: Jundi Chen (no team)
+Group name: jundic
+Student name: Jundi Chen
 Student number: 301387982
+Member: Jundi Chen
 
 Project description and instructions:
 My final project SQL embedded program is designed by using psycopg2 module from python3 combined with PostgreSQL database.
@@ -20,10 +22,11 @@ For the host name, you can either enter your own host name, or press enter to ch
 For the database name, you can either enter your own database name, or press enter to choose mine: cmpt354-jundic  (assuming you have the access to it)
 Once you have entered all the credentials and if they are all correct, you will be able to navigate through my database.
 
-Initially, I don't have any tables created on csil-cpu1.csil.sfu.ca sever under: cmpt354-jundic
-You need to enter "0" to create all the tables and insert all the data first in order to choose other options to query from the database.
+Because of task 1 requirement, I have created all the tables on csil-cpu1.csil.sfu.ca server.
 You can also enter "11" to see all the existing tables or "10" to drop all the existing tables and types.
-If you enter other query options without creating the tables first, you will not be able to query anything.
+After entering "10" to drop all the existing tables and types, you can enter "0" to create them again.
+If you have already created the tables, press "0" will not create more tables. Also, entering "10" will not drop more tables if there are none.
+If you enter other query options without any tables, you will not be able to query anything.
 Finally, if you are bored with my database, you can enter "8" to exit the program. If you are not bored, perhaps give me a good grade? LOL
 
 
@@ -33,3 +36,35 @@ since the provided table only has 'amount' that is intended for the awarded amou
 requested amount and the awarded amount. Adding this extra column will make this query possible.
 The second one is that I had to add a table called "meeting" to accommodate the need for query 7 since it requires a room number which
 I will have this piece of info in "meeting" table for further querying to accomplish this task.
+
+
+For task 3, my ASSERTIONs are as follows:
+
+CREATE ASSERTION conflict_reviewer_assignment
+CHECK ( (SELECT id FROM researcher) <>
+(SELECT id FROM meeting WHERE meeting.userid = researcher.id)
+);
+
+CREATE ASSERTION conflict_reviewers
+CHECK ( (SELECT id FROM call, proposal where proposal.callid = call.id ) <>
+(SELECT researcherid FROM collaborator) AND
+(SELECT id FROM call, proposal where proposal.callid = call.id ) <>
+(SELECT pi FROM proposal)
+);
+
+Assuming I store user picked date as the 'current_date'
+CREATE ASSERTION no_more_two_days
+CHECK ((SELECT userid FROM meeting where meeting.vacantdeadline = current_date)
+<> (SELECT userid FROM meeting where meeting.vacantdeadline <> current_date - INTERVAL '1 day')
+);
+
+Assuming I store all user picked proposal id in another table called 'picked_proposal'
+and id REFERENCES id from the proposal table
+Assuming I store all user picked attendee id in another table called 'picked_attendee'
+and id REFERENCES id from the researcher table, also create another column named 'reviewproposalid'
+After assigning all the picked_proposals to the picked_attendees, I will UPDATE the
+picked_attendee table so that each row might have a picked_proposal Otherwise null
+finally I can write the following ASSERTION:
+CREATE ASSERTION must_review_one
+CHECK ((SELECT * FROM picked_attendee WHERE picked_attendee.reviewproposalid <> NULL)
+);
