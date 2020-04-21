@@ -55,6 +55,12 @@ def createTableFunction():
             deadline DATE NOT NULL,
             submitted BOOLEAN DEFAULT 'false' NOT NULL
             );
+
+            CREATE TABLE meeting(
+            id SERIAL PRIMARY KEY,
+            userid INT REFERENCES researcher(id) NOT NULL,
+            vacantdeadline DATE NOT NULL
+            );
             '''
     return create_table_query
 
@@ -65,53 +71,83 @@ def insertDataQuery():
                         (1,'Name','Lastname1','email1@sfu.ca','SFU'),
                         (2,'Name','Lastname2','email2@uvic.ca','UVIC'),
                         (3,'Name','Lastname3','email3@sfu.ca','SFU'),
-                        (4,'Name','Lastname4','email4@uvic.ca','UVIC');
-                        (5,'Name','Lastname5','email5@uvic.ca','UVIC');
+                        (4,'Name','Lastname4','email4@uvic.ca','UVIC'),
+                        (5,'Name','Lastname5','email5@uvic.ca','UVIC'),
+                        (6,'Name','Lastname6','email6@sfu.ca','SFU'),
+                        (7,'Name','Lastname7','email7@uvic.ca','UVIC'),
+                        (8,'Name','Lastname8','email8@sfu.ca','SFU');
+
 
                         INSERT INTO call VALUES
-                        (1,'Canadian Inovation','2018-07-16',NULL,'computer science',DEFAULT),
-                        (2,'Some Title','2018-03-03',NULL,'biology',DEFAULT),
-                        (3,'Reduce Carbon Footprint','2018-12-30',NULL,'engineering','closed');
-                        (4,'Environmental Issue','2018-02-03',NULL,'engineering',DEFAULT);
+                        (1,'Canadian Inovation','2018-07-16',NULL,'computer science','closed'),
+                        (2,'Some Title','2018-03-03',NULL,'biology','closed'),
+                        (3,'Reduce Carbon Footprint','2018-12-30',NULL,'engineering','closed'),
+                        (4,'Environmental Issue','2018-02-03',NULL,'engineering','closed'),
+                        (5,'The Art of Speaking','2019-06-03',NULL,'communication',DEFAULT),
+                        (6,'Cracking Down Crime','2019-12-03',NULL,'criminology',DEFAULT),
+                        (7,'Improve Police Protection','2020-01-03',NULL,'criminology',DEFAULT),
+                        (8,'Polymorphism','2020-02-03',NULL,'biology',DEFAULT);
 
                         INSERT INTO proposal VALUES
-                        (DEFAULT,2,1,'awarded',28000.00,25000),
-                        (DEFAULT,1,2,'denied',NULL,10000.00),
-                        (DEFAULT,3,3,'awarded',50000.00,30000.00);
-                        (DEFAULT,4,4,'awarded',40000.00,40000.00);
+                        (1,2,1,'awarded',28000.00,25000),
+                        (2,1,2,'denied',NULL,10000.00),
+                        (3,3,3,'awarded',50000.00,30000.00),
+                        (4,4,4,'awarded',40000.00,40000.00),
+                        (5,5,5,DEFAULT,NULL,20000.00),
+                        (6,6,6,DEFAULT,NULL,28000.00),
+                        (7,7,7,DEFAULT,NULL,23000.00),
+                        (8,8,8,DEFAULT,NULL,13000.00);
 
                         INSERT INTO collaborator VALUES
-                        (1,10,5,'t'),
-                        (2,12,1,'f'),
-                        (3,12,4,'t'),
-                        (4,12,5,'t');
+                        (1,2,5,'f'),
+                        (2,3,1,'f'),
+                        (3,3,3,'t'),
+                        (4,3,5,'f');
 
                         INSERT INTO conflict VALUES
-                        (DEFAULT,1,2,'co-authered paper',now() + interval '2 year'),
-                        (DEFAULT,4,5,'related',NULL),
-                        (DEFAULT,3,7,'Same Department',NULL);
+                        (1,1,2,'co-authered paper','2020-12-30'),
+                        (2,4,5,'related',NULL),
+                        (3,3,8,'Same Department',NULL),
+                        (4,5,2,'related',NULL),
+                        (5,6,3,'related',NULL);
 
                         INSERT INTO review VALUES
-                        (DEFAULT,6,3,now(),'t'),
-                        (DEFAULT,7,1,now() + interval '2 week','f'),
-                        (DEFAULT,6,1,now() + interval '2 week','t'),
-                        (DEFAULT,1,2,now(),'t');
+                        (1,5,1,'2018-01-16','t'),
+                        (2,6,4,'2018-01-3','t'),
+                        (3,7,4,'2018-01-3','t'),
+                        (4,8,2,'2018-07-16','t'),
+                        (5,5,3,'2018-11-16','t');
+
+
+                        INSERT INTO meeting VALUES
+                        (1,3,'2020-12-12'),
+                        (2,2,'2020-11-12'),
+                        (3,1,'2020-12-12'),
+                        (4,4,'2019-02-02'),
+                        (5,6,'2020-05-27'),
+                        (6,5,'2020-09-05'),
+                        (7,5,'2018-03-05');
                         '''
     return insert_data_query
 
 
+def dropTypeFunction():
+    drop_type_query = '''
+                      DROP TYPE callstatus,appstatus;
+                      '''
+    return drop_type_query
+
+
+def dropTableFunction():
+    drop_table_query = '''
+                       DROP TABLE researcher,call,collaborator,conflict,meeting,proposal,review;
+                       '''
+
+    return drop_table_query
+
+
 def createALLTables(userInput, passwordInput, hostInput, databaseInput):
-    # user = input("Please put in your user name\n")
-    # password = input("Please put in your password\n")
-    # host = "localhost"
-    # database = "cmpt354_jundic"
-
     try:
-        # connection = psycopg2.connect(user = "jundic",
-        #                               password = "ci...",
-        #                               host = "cs-db1.csil.sfu.ca",
-        #                               database = "cmpt354-jundic")
-
         connection = psycopg2.connect(user=userInput,
                                       password=passwordInput,
                                       host=hostInput,
@@ -119,12 +155,13 @@ def createALLTables(userInput, passwordInput, hostInput, databaseInput):
 
         cursor = connection.cursor()
         create_table_query = createTableFunction()
+        # print("successfully passed here")
         insert_data_query = insertDataQuery()
+
         cursor.execute(create_table_query)
         cursor.execute(insert_data_query)
         connection.commit()
-        print("All the tables created successfully in PostgreSQL! ")
-        print("You are successfully connected to cmpt354_jundic!\n")
+        print("All the tables created and inserted data successfully in PostgreSQL! ")
 
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL", error)
@@ -133,11 +170,109 @@ def createALLTables(userInput, passwordInput, hostInput, databaseInput):
         if(connection):
             cursor.close()
             connection.close()
-            print("PostgreSQL connection is closed")
+
+
+def dropAllTablesAndTypes(userInput, passwordInput, hostInput, databaseInput):
+    try:
+        connection = psycopg2.connect(user=userInput,
+                                      password=passwordInput,
+                                      host=hostInput,
+                                      database=databaseInput)
+
+        cursor = connection.cursor()
+        drop_table_query = dropTableFunction()
+        drop_type_query = dropTypeFunction()
+        cursor.execute(drop_table_query)
+        cursor.execute(drop_type_query)
+        connection.commit()
+        print("All the tables and types have been dropped successfully in PostgreSQL! ")
+
+    except (Exception, psycopg2.Error) as error:
+        print("Error while connecting to PostgreSQL", error)
+    finally:
+        # closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
+
+
+def showAllTables(userInput, passwordInput, hostInput, databaseInput):
+    try:
+        connection = psycopg2.connect(user=userInput,
+                                      password=passwordInput,
+                                      host=hostInput,
+                                      database=databaseInput)
+
+        cursor = connection.cursor()
+
+        showAll = '''
+                  SELECT * FROM pg_catalog.pg_tables
+                  WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';
+                  '''
+        cursor.execute(showAll)
+        records = cursor.fetchall()
+        for row in records:
+            print(row)
+        connection.commit()
+
+    except (Exception, psycopg2.Error) as error:
+        print("Error while connecting to PostgreSQL", error)
+    finally:
+        # closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
+
+# def createForFun(userInput, passwordInput, hostInput, databaseInput):
+#     try:
+#         connection = psycopg2.connect(user=userInput,
+#                                       password=passwordInput,
+#                                       host=hostInput,
+#                                       database=databaseInput)
+#
+#         cursor = connection.cursor()
+#
+#         create_table_query = '''
+#                 CREATE TABLE good(
+#                 id SERIAL PRIMARY KEY,
+#                 callid INT
+#                 );
+#
+#
+#                 CREATE TABLE bad(
+#                 id SERIAL PRIMARY KEY,
+#                 callid INT
+#                 );
+#                 '''
+#         insert_data_query = '''
+#                             INSERT INTO good VALUES
+#                             (1,2),
+#                             (2,3);
+#
+#                             INSERT INTO bad VALUES
+#                             (1,2),
+#                             (2,3);
+#                             '''
+#
+#         cursor.execute(create_table_query)
+#         cursor.execute(insert_data_query)
+#         connection.commit()
+#         print("All the tables created successfully in PostgreSQL! ")
+#         print("You are successfully connected to cmpt354_jundic!\n")
+#
+#     except (Exception, psycopg2.Error) as error:
+#         print("Error while connecting to PostgreSQL", error)
+#     finally:
+#         # closing database connection.
+#         if(connection):
+#             cursor.close()
+#             connection.close()
+#             print("PostgreSQL connection is closed")
 
 
 def printMenu():
-    print("Thanks for rubbing the lamp! What would you like to do my dear master?\n")
+
+    print("Press (0) to create all the tables!")
     print("Press (1) to find all the competitions(calls) by a specific month and requested more than $20000 or have 10 people in")
     # Q1 (20 points) Find all competitions (calls for grant proposals) open at a user-specified month, which
     # already have at least one submitted large proposal. For a proposal to be large, it has to request more
@@ -161,18 +296,14 @@ def printMenu():
     # Q5 (10 points) For an area specified by the user, output its average requested/awarded discrepancy,
     # that is, the absolute value of the difference between the amounts.
 
-    print('''Press (6) to assign a set of reviewers to review a specific grant application by a specific ID.
-                 A list of reviewers who are not in conflict with the proposal being reviewed
-                 and have not reached the max of 3 proposals will be returned.''')
+    print('''Press (6) to assign a set of reviewers to review a specific grant application by a specific ID. A list of reviewers who are not in conflict with the proposal being reviewed and have not reached the max of 3 proposals will be returned.''')
     # Q6 (30 points) Reviewer assignment: Provide the user with the option of assigning a set of reviewers to
     # review a specific grant application (research proposal), one proposal at a time. The proposal ID
     # should be specified by the user. Before doing the reviewers assignment, the user should be able to
     # request and receive a list of reviewers who are not in conflict with the proposal being reviewed,
     # and who still have not reached the maximum of three proposals to review.
 
-    print('''Press (7) to check a specific room is availabe at a specific date.
-                 If yes, enter 3 competitions(calls) IDs to be discussed on that day
-                 Otherwise, 'Impossible' will be returned''')
+    print('''Press (7) to check a specific room is availabe at a specific date. If yes, enter 3 competitions(calls) IDs to be discussed on that day.Otherwise, 'Impossible' will be returned''')
     # Q7 (30 points) Meeting scheduling: Your application should check if the user-entered room is available
     # at a the user-entered date. If yes, the user should be prompted to enter 3 competitions (calls)
     # IDs to be discussed and decided on that day. If a competition cannot be scheduled to be discussed
@@ -181,7 +312,10 @@ def printMenu():
     # version just returns “Impossible”). Here, for a reviewer “not to be available” means that he or she
     # is scheduled to be in another room on the same day
     print("Press (8) to EXIT the program ...")
-    print("Press (0) to see the menu again")
+    print("Press (9) to see the menu again")
+
+    print("Enter (10) to drop all the tables and types!")
+    print("Enter (11) to see all the tables!")
 
 
 def queryOne(userInput, passwordInput, hostInput, databaseInput):
@@ -1048,51 +1182,51 @@ def main():
     hostInput = '127.0.0.1'
     databaseInput = 'cmpt354_jundic'
 
-    # haveNoAccess = True
-    # userInput = ''
-    # passwordInput = ''
-    # hostInput = ''
-    # databaseInput = ''
-    # while haveNoAccess:
-    #
-    #     userInput = input("Please enter your user name: Prompt==> ")
-    #     while userInput == '':
-    #         print("You forgot to put in user please try again !")
-    #         userInput = input("Please enter your user name: Prompt==> ")
-    #
-    #     passwordInput = input("Please enter your password: Prompt==> ")
-    #     while passwordInput == '':
-    #         print("You forgot to put in password please try again !")
-    #         passwordInput = input("Please enter your password: Prompt==> ")
-    #     hostInput = input(
-    #         "Please enter the host name (or press enter for default host:cs-db1.csil.sfu.ca): Prompt==> ")
-    #     databaseInput = input(
-    #         "Please enter your own database name(or press enter to go to my database assuming you have the access to it): Prompt==> ")
-    #
-    #     if hostInput == '':
-    #         # hostInput = 'cs-db1.csil.sfu.ca'
-    #         hostInput = '127.0.0.1'  # for testing
-    #
-    #     if databaseInput == '':
-    #         # databaseInput = 'cmpt354-jundic'
-    #         databaseInput = 'cmpt354_jundic'
-    #
-    #     if testingCredentials(userInput, passwordInput, hostInput, databaseInput):
-    #
-    #         haveNoAccess = False
-    #     else:
-    #         print("Wrong Credentials! ACCESS DENIED! Plase try again!")
+    haveNoAccess = True
+    userInput = ''
+    passwordInput = ''
+    hostInput = ''
+    databaseInput = ''
+    while haveNoAccess:
 
-    # createALLTables(userInput, passwordInput, hostInput, databaseInput);
-    # i might need to get user name and password and pass them as params in each query
-    # i can also prompt the TA to enter his/her database
+        userInput = input("Please enter your user name: Prompt==> ")
+        while userInput == '':
+            print("You forgot to put in user please try again !")
+            userInput = input("Please enter your user name: Prompt==> ")
+
+        passwordInput = input("Please enter your password: Prompt==> ")
+        while passwordInput == '':
+            print("You forgot to put in password please try again !")
+            passwordInput = input("Please enter your password: Prompt==> ")
+        hostInput = input(
+            "Please enter the host name (or press enter for default host:cs-db1.csil.sfu.ca): Prompt==> ")
+        databaseInput = input(
+            "Please enter your own database name(or press enter to go to my database assuming you have the access to it): Prompt==> ")
+
+        if hostInput == '':
+            # hostInput = 'cs-db1.csil.sfu.ca'
+            hostInput = '127.0.0.1'  # for testing
+
+        if databaseInput == '':
+            # databaseInput = 'cmpt354-jundic'
+            databaseInput = 'cmpt354_jundic'  # for testing
+
+        if testingCredentials(userInput, passwordInput, hostInput, databaseInput):
+
+            haveNoAccess = False
+        else:
+            print("Wrong Credentials! ACCESS DENIED! Plase try again!")
+
+    # createALLTables(userInput, passwordInput, hostInput, databaseInput)
+    print("!!!!!!Please press (0) to create all the tables first/ or (11) to check for existing tables!!!!!\n")
+    print("!!!!!!You will be querying empty tables if you don't press (0) first !!!!!\n")
     printMenu()
     while True:
         response = input("Main menu Prompt ==> ")
-        while (not (response == '0' or response == '1' or response == '2' or response == '3' or response == '4' or response == '5' or response == '6' or response == '7' or response == '8' or response == '9')):
+        while (not (response == '0' or response == '1' or response == '2' or response == '3' or response == '4' or response == '5' or response == '6' or response == '7' or response == '8' or response == '9' or response == '10' or response == '11')):
             response = input("Invalid command! Trying again: Main menu Prompt ==> ")
         if response == '0':
-            printMenu()
+            createALLTables(userInput, passwordInput, hostInput, databaseInput)
         elif response == '1':
             queryOne(userInput, passwordInput, hostInput, databaseInput)
         elif response == '2':
@@ -1108,10 +1242,14 @@ def main():
         elif response == '7':
             querySeven(userInput, passwordInput, hostInput, databaseInput)
         elif response == '8':
-            print("I am going back to the lamp my master, rub the lamp to see me again next time!")
+            print("Exiting... see you again next time!\n")
             return
         elif response == '9':  # i need final fix on here and the menu
-            createALLTables(userInput, passwordInput, hostInput, databaseInput)
+            printMenu()
+        elif response == '10':
+            dropAllTablesAndTypes(userInput, passwordInput, hostInput, databaseInput)
+        elif response == '11':
+            showAllTables(userInput, passwordInput, hostInput, databaseInput)
 
 
 main()

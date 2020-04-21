@@ -25,8 +25,7 @@ callid INT REFERENCES call(id) NOT NULL,
 pi INT REFERENCES researcher(id) NOT NULL,
 status appstatus DEFAULT 'submitted' NOT NULL,
 amount NUMERIC(14,2),
-requestamount NUMERIC(14,2)           // added
-
+requestamount NUMERIC(14,2)
 );
 
 CREATE TABLE collaborator(
@@ -56,19 +55,19 @@ submitted BOOLEAN DEFAULT 'false' NOT NULL
 CREATE TABLE meeting(
 id SERIAL PRIMARY KEY,
 userid INT REFERENCES researcher(id) NOT NULL,
-vacantdeadline DATE NOT NULL,
+vacantdeadline DATE NOT NULL
 );
 
 
 INSERT INTO researcher VALUES
-(1,'Name','Lastname1','email1@sfu.ca','SFU','2020-05-08'),
-(2,'Name','Lastname2','email2@uvic.ca','UVIC','2020-05-03'),
-(3,'Name','Lastname3','email3@sfu.ca','SFU','2020-05-11'),
-(4,'Name','Lastname4','email4@uvic.ca','UVIC','2020-05-16'),
-(5,'Name','Lastname5','email5@uvic.ca','UVIC','2020-05-19'),
-(6,'Name','Lastname6','email6@sfu.ca','SFU','2020-05-20'),
-(7,'Name','Lastname7','email7@uvic.ca','UVIC','2020-05-23'),
-(8,'Name','Lastname8','email8@sfu.ca','SFU','2020-05-27');
+(1,'Name','Lastname1','email1@sfu.ca','SFU'),
+(2,'Name','Lastname2','email2@uvic.ca','UVIC'),
+(3,'Name','Lastname3','email3@sfu.ca','SFU'),
+(4,'Name','Lastname4','email4@uvic.ca','UVIC'),
+(5,'Name','Lastname5','email5@uvic.ca','UVIC'),
+(6,'Name','Lastname6','email6@sfu.ca','SFU'),
+(7,'Name','Lastname7','email7@uvic.ca','UVIC'),
+(8,'Name','Lastname8','email8@sfu.ca','SFU');
 
 
 INSERT INTO call VALUES
@@ -117,6 +116,6 @@ INSERT INTO meeting VALUES
 (2,2,'2020-11-12'),
 (3,1,'2020-12-12'),
 (4,4,'2019-02-02'),
-(5,6,'2018-12-12'),
-(6,5,'2018-05-05'),
-(7,5,'2018-03-05');                 // added
+(5,6,'2020-05-27'),
+(6,5,'2020-09-05'),
+(7,5,'2018-03-05');
