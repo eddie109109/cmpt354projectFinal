@@ -1164,11 +1164,7 @@ def testingCredentials(userInput, passwordInput, hostInput, databaseInput):
                                       database=databaseInput)
 
         cursor = connection.cursor()
-        print("you have entered the right credentials! ")
-        print("You are successfully connected to " + databaseInput + "!")
-        # connection.commit()
-        # cursor.close()
-        # connection.close()
+        print("You have entered the right credentials! ")
         return True
 
     except (Exception, psycopg2.Error) as error:
@@ -1177,10 +1173,6 @@ def testingCredentials(userInput, passwordInput, hostInput, databaseInput):
 
 
 def main():
-    userInput = 'postgres'
-    passwordInput = '123456'
-    hostInput = '127.0.0.1'
-    databaseInput = 'cmpt354_jundic'
 
     haveNoAccess = True
     userInput = ''
@@ -1199,30 +1191,29 @@ def main():
             print("You forgot to put in password please try again !")
             passwordInput = input("Please enter your password: Prompt==> ")
         hostInput = input(
-            "Please enter the host name (or press enter for default host:cs-db1.csil.sfu.ca): Prompt==> ")
+            "Please enter the host name (or press enter for default host: cs-db1.csil.sfu.ca): Prompt==> ")
         databaseInput = input(
-            "Please enter your own database name(or press enter to go to my database assuming you have the access to it): Prompt==> ")
+            "Please enter your own database name(or press enter to go to my database(cmpt354-jundic) assuming you have the access to it): Prompt==> ")
 
         if hostInput == '':
-            # hostInput = 'cs-db1.csil.sfu.ca'
-            hostInput = '127.0.0.1'  # for testing
+            hostInput = 'cs-db1.csil.sfu.ca'
+            # hostInput = '127.0.0.1'  # for local testing only
 
         if databaseInput == '':
-            # databaseInput = 'cmpt354-jundic'
-            databaseInput = 'cmpt354_jundic'  # for testing
+            databaseInput = 'cmpt354-jundic'
+            # databaseInput = 'cmpt354_jundic'  # for local testing only
 
         if testingCredentials(userInput, passwordInput, hostInput, databaseInput):
-
             haveNoAccess = False
         else:
             print("Wrong Credentials! ACCESS DENIED! Plase try again!")
 
     # createALLTables(userInput, passwordInput, hostInput, databaseInput)
-    print("!!!!!!Please press (0) to create all the tables first/ or (11) to check for existing tables!!!!!\n")
-    print("!!!!!!You will be querying empty tables if you don't press (0) first !!!!!\n")
+    print("!!Please press (0) to create all the tables first/ or (11) to check for existing tables!!")
+    print("!!You will be querying empty tables if you don't press (0) first!!\n")
     printMenu()
     while True:
-        response = input("Main menu Prompt ==> ")
+        response = input("Main menu Prompt(9 to see menu again)==> ")
         while (not (response == '0' or response == '1' or response == '2' or response == '3' or response == '4' or response == '5' or response == '6' or response == '7' or response == '8' or response == '9' or response == '10' or response == '11')):
             response = input("Invalid command! Trying again: Main menu Prompt ==> ")
         if response == '0':
@@ -1244,7 +1235,7 @@ def main():
         elif response == '8':
             print("Exiting... see you again next time!\n")
             return
-        elif response == '9':  # i need final fix on here and the menu
+        elif response == '9':
             printMenu()
         elif response == '10':
             dropAllTablesAndTypes(userInput, passwordInput, hostInput, databaseInput)
