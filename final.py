@@ -907,7 +907,6 @@ def querySix(userInput, passwordInput, hostInput, databaseInput):
                         if keepGoing == 'y':
                             continue
                         elif keepGoing == 'n':
-                            print(str(len(inputList)) + " researchers assigned for the current proposal!")
                             inputList = []
                             isTrue = False
                         else:
@@ -967,8 +966,6 @@ def querySix(userInput, passwordInput, hostInput, databaseInput):
                                 if keepGoing == 'y':
                                     continue
                                 elif keepGoing == 'n':
-                                    print(str(len(inputList)) +
-                                          " researchers assigned for the current proposal!")
                                     inputList = []
                                     isContinue = False
                                     isTrue = False
